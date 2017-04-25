@@ -5,7 +5,6 @@ import numpy as np
 from collections import defaultdict
 from sklearn.metrics import roc_curve
 from sklearn.metrics import auc
-from sklearn.cross_validation import ShuffleSplit
 from sklearn.linear_model.logistic import LogisticRegression
 from sklearn.metrics import confusion_matrix
 from sklearn.externals import joblib
@@ -41,7 +40,9 @@ def train_model(X, Y, name, plot=False):
     """
     labels = np.unique(Y)
 
-    cv = ShuffleSplit(n=len(X), test_size=0.4, random_state=1)
+    #cv = ShuffleSplit(n=len(X), test_size=0.4, random_state=1)
+
+    cv = ShuffleSp(n_splits=10, test_size=0.4, random_state=1)
 
     train_errors = []
     test_errors = []
@@ -64,9 +65,19 @@ def train_model(X, Y, name, plot=False):
     X_GMM_F = []
     Y_GMM = []
 
-    for train, test in cv:
-        X_train, y_train = X[train], Y[train]
-        X_test, y_test = X[test], Y[test]
+    for train, test in cv.split(X):
+        X_train = []
+        y_train = []
+        for el in train:
+            X_train.append(X[el])
+            y_train.append(Y[el])
+
+        X_test = []
+        y_test = []
+
+        for el in test:
+            X_test.append(X[el])
+            y_test.append(Y[el])
 
         X_GMM = []
 
@@ -131,12 +142,6 @@ def train_model(X, Y, name, plot=False):
     # print("%.3f\t%.3f\t%.3f\t%.3f\t" % summary)
 
     # save the trained model to disk
-    print "lungime input"
-    print len(X_GMM_F)
-
-    print "lungime output"
-    print len(list(Y_GMM))
-
     cv_gmm = ShuffleSp(n_splits=10, test_size=0.4, random_state=1)
     gmm_cms = []
 
