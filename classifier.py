@@ -5,23 +5,21 @@ import numpy as np
 from collections import defaultdict
 from sklearn.metrics import roc_curve
 from sklearn.metrics import auc
-from sklearn.linear_model.logistic import LogisticRegression
 from sklearn.metrics import confusion_matrix
 from sklearn.externals import joblib
 from utils import GENRE_LIST
-from utils import plot_confusion_matrix, plot_roc_curves
+from utils import plot_confusion_matrix, plot_roc_curves, extract_sample
 from ceps import read_ceps
 
-from sklearn.model_selection import ShuffleSplit as ShuffleSp
+from sklearn.model_selection import ShuffleSplit
 
+from sklearn.linear_model.logistic import LogisticRegression
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.ensemble import RandomForestClassifier
-
-from sklearn import mixture
-
 from sklearn.neural_network import MLPClassifier
 
 genre_list = GENRE_LIST
+
 original_params = {'n_estimators': 100, 'max_leaf_nodes': 16, 'max_depth': None, 'random_state': 2,
                    'min_samples_split': 5}
 clasificatori = [LogisticRegression(),
@@ -40,9 +38,7 @@ def train_model(X, Y, name, plot=False):
     """
     labels = np.unique(Y)
 
-    #cv = ShuffleSplit(n=len(X), test_size=0.4, random_state=1)
-
-    cv = ShuffleSp(n_splits=10, test_size=0.4, random_state=1)
+    cv = ShuffleSplit(n_splits=10, test_size=0.4, random_state=1)
 
     train_errors = []
     test_errors = []
@@ -60,24 +56,14 @@ def train_model(X, Y, name, plot=False):
     cms = [[] for _ in range(len(clasificatori))]
 
     # GMM_clf = mixture.GaussianMixture(n_components=10, covariance_type='full',max_iter=300)
-    GMM_clf = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(10,), random_state=1)
+    GMM_clf = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(15,), random_state=1)
 
     X_GMM_F = []
     Y_GMM = []
 
     for train, test in cv.split(X):
-        X_train = []
-        y_train = []
-        for el in train:
-            X_train.append(X[el])
-            y_train.append(Y[el])
-
-        X_test = []
-        y_test = []
-
-        for el in test:
-            X_test.append(X[el])
-            y_test.append(Y[el])
+        X_train, y_train = extract_sample(X, Y, train)
+        X_test, y_test = extract_sample(X, Y, test)
 
         X_GMM = []
 
@@ -142,22 +128,12 @@ def train_model(X, Y, name, plot=False):
     # print("%.3f\t%.3f\t%.3f\t%.3f\t" % summary)
 
     # save the trained model to disk
-    cv_gmm = ShuffleSp(n_splits=10, test_size=0.4, random_state=1)
+    cv_gmm = ShuffleSplit(n_splits=10, test_size=0.4, random_state=1)
     gmm_cms = []
 
     for train, test in cv_gmm.split(X_GMM_F):
-        X_train = []
-        y_train = []
-        for el in train:
-            X_train.append(X_GMM_F[el])
-            y_train.append(Y_GMM[el])
-
-        X_test = []
-        y_test = []
-
-        for el in test:
-            X_test.append(X_GMM_F[el])
-            y_test.append(Y_GMM[el])
+        X_train, y_train = extract_sample(X_GMM_F, Y_GMM, train)
+        X_test, y_test = extract_sample(X_GMM_F, Y_GMM, test)
 
         GMM_clf.fit(X_train, y_train)
 
@@ -169,7 +145,6 @@ def train_model(X, Y, name, plot=False):
 
     cm_avg = np.mean(gmm_cms, axis=0)
     cm_norm = cm_avg / np.sum(cm_avg, axis=0)
-    print cm_norm
     print "\n Plotting confusion matrix ... \n"
     plot_confusion_matrix(cm_norm, genre_list, "EM", "CEPS classifier - Confusion matrix")
 

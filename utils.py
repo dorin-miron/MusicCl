@@ -40,6 +40,15 @@ for d in [DATA_DIR, CHART_DIR, MODEL_DIR]:
         os.mkdir(d)
 
 
+def extract_sample(x, y, indices):
+    x_extracted = []
+    y_extracted = []
+
+    for i in indices:
+        x_extracted.append(x[i])
+        y_extracted.append(y[i])
+    return x_extracted, y_extracted
+
 def convert_any_to_wav():
     """
         Converts the input file to the WAV format.
