@@ -6,7 +6,7 @@ import scipy
 import scipy.io.wavfile
 from scikits.talkbox.features import mfcc
 
-from utils import GENRE_DIR, CHART_DIR, GENRE_LIST
+from utils import DATASET_DIR, CHART_DIR, GENRE_LIST
 
 def write_ceps(ceps, fn):
     """
@@ -28,7 +28,7 @@ def create_ceps(fn):
     write_ceps(ceps, fn)
 
 
-def read_ceps(genre_list, base_dir=GENRE_DIR):
+def read_ceps(genre_list, base_dir=DATASET_DIR):
     """
         Reads the MFCC features from disk and
         returns them in a numpy array.
@@ -76,12 +76,12 @@ def read_ceps_test(test_file):
 if __name__ == "__main__":
     import timeit
     start = timeit.default_timer()
-    for subdir, dirs, files in os.walk(GENRE_DIR):
+    for subdir, dirs, files in os.walk(DATASET_DIR):
         traverse = list(set(dirs).intersection( set(GENRE_LIST) ))
         break
     print "Working with these genres --> ", traverse
     print "Starting ceps generation"     
-    for subdir, dirs, files in os.walk(GENRE_DIR):
+    for subdir, dirs, files in os.walk(DATASET_DIR):
         for file in files:
             path = subdir+'/'+file
             if path.endswith("wav"):

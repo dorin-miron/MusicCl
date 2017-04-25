@@ -3,10 +3,10 @@ import sys
 import timeit
 
 from pydub import AudioSegment
-from utils import GENRE_DIR
+from utils import DATASET_DIR
 
 start = timeit.default_timer()
-rootdir = GENRE_DIR
+rootdir = DATASET_DIR
 print "START CONVERT DATASET"
 for subdir, dirs, files in os.walk(rootdir):
     for file in files:
@@ -15,7 +15,7 @@ for subdir, dirs, files in os.walk(rootdir):
         if path.endswith("au"):
             song = AudioSegment.from_file(path,"au")
             song = song[:30000]
-            song.export(path[:-2]+"wav",format='wav')
+            song.export(path[:-2]+"wav", format='wav')
 
 for subdir, dirs, files in os.walk(rootdir):
     for file in files:

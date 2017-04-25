@@ -1,21 +1,8 @@
-import os
 import copy
-import timeit
-import numpy as np
-from collections import defaultdict
-
-from sklearn.metrics import precision_recall_curve, roc_curve
-from sklearn.metrics import auc
-from sklearn.cross_validation import ShuffleSplit
-from sklearn.linear_model.logistic import LogisticRegression
-from sklearn.metrics import confusion_matrix
 from sklearn.externals import joblib
 
-from utils import plot_roc_curves, plot_confusion_matrix, GENRE_DIR, GENRE_LIST, TEST_DIR
-
-from ceps import read_ceps, create_ceps_test, read_ceps_test
-
-from pydub import AudioSegment
+from utils import GENRE_LIST
+from ceps import create_ceps_test, read_ceps_test
 
 genre_list = GENRE_LIST
 
@@ -63,9 +50,6 @@ def tst_model_on_single_file(file_path):
 if __name__ == "__main__":
 
     global traverse
-    #for subdir, dirs, files in os.walk(GENRE_DIR):
-    #    traverse = list(set(dirs).intersection(set(GENRE_LIST)))
-     #   break
     traverse = GENRE_LIST
 
     test_file = "blues.00031.wav"
