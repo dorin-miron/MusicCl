@@ -1,5 +1,6 @@
 import copy
 import timeit
+import itertools
 import numpy as np
 from collections import defaultdict
 from sklearn.metrics import roc_curve
