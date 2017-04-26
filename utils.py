@@ -49,6 +49,7 @@ def extract_sample(x, y, indices):
         y_extracted.append(y[i])
     return x_extracted, y_extracted
 
+
 def convert_any_to_wav():
     """
         Converts the input file to the WAV format.
