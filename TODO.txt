@@ -10,4 +10,8 @@ Antrenez un nou clasificator 1-NN care sa aiba ca si input cele pentru fiecare i
 iar outputul va fi clasificarea facuta de fiecare clasificator folosit
 
 Voi colora fundalul in functie de clasa caruia apartine inputul.
+
+exemplu aici: http://stackoverflow.com/questions/37718347/plotting-decision-boundary-for-high-dimension-data
+
+sau asa: http://scikit-learn.org/stable/auto_examples/datasets/plot_random_dataset.html
 __________________________________________________________________________________________________________
