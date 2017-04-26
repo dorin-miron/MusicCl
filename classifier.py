@@ -23,46 +23,45 @@ from sklearn.neural_network import MLPClassifier
 
 
 from sklearn.decomposition import PCA
-from matplotlib import ticker
 
 genre_list = GENRE_LIST
 
 original_params = {'n_estimators': 100, 'max_leaf_nodes': 16, 'max_depth': None, 'random_state': 2,
                    'min_samples_split': 5}
 
-clasificatori = [LogisticRegression(),
-                 RandomForestClassifier(n_estimators=200, max_depth=None, min_samples_split=2, random_state=1),
-                 GradientBoostingClassifier(**original_params)]
+classifiers = [LogisticRegression(),
+               RandomForestClassifier(n_estimators=200, max_depth=None, min_samples_split=2, random_state=1),
+               GradientBoostingClassifier(**original_params)]
 
 # GMM_clf = mixture.GaussianMixture(n_components=10, covariance_type='full',max_iter=300)
 GMM_clf = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(15,), random_state=1)
 
 
 def plot_decision(real_x, real_y, pred_y):
-    #TODO see where is commented and modify to display x and real y from test_dataset
+    # TODO see where is commented and modify to display x and real y from test_dataset
 
     x_train_embedded = PCA(n_components=2).fit_transform(real_x)
 
     resolution = 1000  # 100x100 background pixels
-    x2d_xmin, x2d_xmax = np.min(x_train_embedded[:, 0]), np.max(x_train_embedded[:, 0])
-    x2d_ymin, x2d_ymax = np.min(x_train_embedded[:, 1]), np.max(x_train_embedded[:, 1])
-    xx, yy = np.meshgrid(np.linspace(x2d_xmin, x2d_xmax, resolution), np.linspace(x2d_ymin, x2d_ymax, resolution))
+    x2d_x_min, x2d_x_max = np.min(x_train_embedded[:, 0]), np.max(x_train_embedded[:, 0])
+    x2d_y_min, x2d_y_max = np.min(x_train_embedded[:, 1]), np.max(x_train_embedded[:, 1])
+    xx, yy = np.meshgrid(np.linspace(x2d_x_min, x2d_x_max, resolution), np.linspace(x2d_y_min, x2d_y_max, resolution))
 
     background_model = KNeighborsClassifier(n_neighbors=1).fit(x_train_embedded, pred_y)
-    voronoiBackground = background_model.predict(np.c_[xx.ravel(), yy.ravel()])
-    voronoiBackground = voronoiBackground.reshape((resolution, resolution))
+    voronoi_background = background_model.predict(np.c_[xx.ravel(), yy.ravel()])
+    voronoi_background = voronoi_background.reshape((resolution, resolution))
 
     # plot
-    # voronoiBackground[-1][-1] = 10
-    plt.contourf(xx, yy, voronoiBackground, 10)
+    # voronoi_background[-1][-1] = 10
+    plt.contourf(xx, yy, voronoi_background, 10)
     # plt.scatter(X_Train_embedded[:, 0], x_train_embedded[:, 1], c=real_y)
     cbar = plt.colorbar()
     cbar.ax.set_yticklabels(GENRE_LIST)
     plt.savefig(os.path.join(CHART_DIR, "test"), bbox_inches="tight")
 
 
-def train_model(X, Y, name, plot=False):
-    labels = np.unique(Y)
+def train_model(real_x, real_y, name, plot=False):
+    labels = np.unique(real_y)
 
     cv = ShuffleSplit(n_splits=10, test_size=0.4, random_state=1)
 
@@ -77,21 +76,21 @@ def train_model(X, Y, name, plot=False):
     tprs = defaultdict(list)
     fprs = defaultdict(list)
 
-    clfs = [[] for _ in range(len(clasificatori))]  # for the median
+    clfs = [[] for _ in range(len(classifiers))]  # for the median
 
-    cms = [[] for _ in range(len(clasificatori))]
+    cms = [[] for _ in range(len(classifiers))]
 
     X_GMM_F = []
     Y_GMM = []
 
-    for train, test in cv.split(X):
-        X_train, y_train = extract_sample(X, Y, train)
-        X_test, y_test = extract_sample(X, Y, test)
+    for train, test in cv.split(real_x):
+        X_train, y_train = extract_sample(real_x, real_y, train)
+        X_test, y_test = extract_sample(real_x, real_y, test)
 
         X_GMM = []
 
-        for cc in range(len(clasificatori)):
-            clf = clasificatori[cc]
+        for cc in range(len(classifiers)):
+            clf = classifiers[cc]
 
             clf.fit(X_train, y_train)
             clfs[cc].append(clf)
@@ -135,7 +134,7 @@ def train_model(X, Y, name, plot=False):
         else:
             X_GMM_F = X_GMM_F + X_GMM
 
-    for cc in range(len(clasificatori)):
+    for cc in range(len(classifiers)):
         if plot:
             for label in labels:
                 scores_to_sort = roc_scores[label]
@@ -143,7 +142,7 @@ def train_model(X, Y, name, plot=False):
                 desc = "%s_%s %s" % (name, cc, genre_list[label])
                 plot_roc_curves(roc_scores[label][median], desc, tprs[label][median], fprs[label][median],label='%s vs rest' % genre_list[label])
 
-        joblib.dump(clasificatori[cc], 'saved_model/model_ceps_%s.pkl' % str(cc))
+        joblib.dump(classifiers[cc], 'saved_model/model_ceps_%s.pkl' % str(cc))
 
     # all_pr_scores = np.asarray(pr_scores.values()).flatten()
     # summary = (np.mean(scores), np.std(scores), np.mean(all_pr_scores), np.std(all_pr_scores))
@@ -184,7 +183,7 @@ def train_model(X, Y, name, plot=False):
     cm_avg = np.mean(gmm_cms, axis=0)
     cm_norm = cm_avg / np.sum(cm_avg, axis=0)
     print "\n Plotting confusion matrix ... \n"
-    plot_confusion_matrix(cm_norm, genre_list, "EM", "CEPS classifier - Confusion matrix")
+    plot_confusion_matrix(cm_norm, genre_list, "Final_Classifier", "CEPS classifier - Confusion matrix")
 
     joblib.dump(GMM_clf, 'saved_model/model_ceps_f.pkl')
     conf_matrix(np.asarray(cms))
@@ -193,7 +192,7 @@ def train_model(X, Y, name, plot=False):
 
 
 def conf_matrix(cms):
-    for cc in range(len(clasificatori)):
+    for cc in range(len(classifiers)):
         cm_avg = np.mean(cms[cc], axis=0)
         cm_norm = cm_avg / np.sum(cm_avg, axis=0)
         print "\n Plotting confusion matrix ... \n"
