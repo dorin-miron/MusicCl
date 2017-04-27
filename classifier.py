@@ -13,32 +13,43 @@ from utils import GENRE_LIST, CHART_DIR
 from utils import plot_confusion_matrix, plot_roc_curves, extract_sample
 from sklearn.neighbors.classification import KNeighborsClassifier
 from ceps import read_ceps
+from sklearn.metrics import accuracy_score
 
 from sklearn.model_selection import ShuffleSplit
 
 from sklearn.linear_model.logistic import LogisticRegression
-from sklearn.ensemble import GradientBoostingClassifier
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.neural_network import MLPClassifier
+from sklearn.gaussian_process import GaussianProcessClassifier
+from sklearn.svm import SVC
+from sklearn.gaussian_process.kernels import RBF
+from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 
 
 from sklearn.decomposition import PCA
 
 genre_list = GENRE_LIST
+first_plot = True
 
-original_params = {'n_estimators': 300, 'max_leaf_nodes': 16, 'max_depth': None, 'random_state': 1,
-                   'min_samples_split': 2}
+original_params = {'n_estimators': 100, 'max_leaf_nodes': 8, 'max_depth': None, 'random_state': 2,
+                   'min_samples_split': 5}
 
-classifiers = [LogisticRegression(),
-               RandomForestClassifier(n_estimators=300, max_depth=None, min_samples_split=2, random_state=1),
-               GradientBoostingClassifier(**original_params)]
+classifiers = [MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(100,), random_state=1),
+               LogisticRegression(),
+               SVC(kernel='linear', probability=True),
+               RandomForestClassifier(n_estimators=100, max_depth=None, random_state=1),
+               GradientBoostingClassifier(**original_params),
+               QuadraticDiscriminantAnalysis(),
+               KNeighborsClassifier(5)]
 
 # GMM_clf = mixture.GaussianMixture(n_components=10, covariance_type='full',max_iter=300)
-GMM_clf = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(300,), random_state=1)
+GMM_clf = RandomForestClassifier(n_estimators=300, max_depth=None, random_state=2)
 
 
 def plot_decision(real_x, real_y, pred_y, name):
     # TODO see where is commented and modify to display x and real y from test_dataset
+    global first_plot
+    background_model = None
 
     x_train_embedded = PCA(n_components=2).fit_transform(real_x)
 
@@ -55,8 +66,10 @@ def plot_decision(real_x, real_y, pred_y, name):
     # voronoi_background[-1][-1] = 10
     plt.contourf(xx, yy, voronoi_background, 10)
     # plt.scatter(X_Train_embedded[:, 0], x_train_embedded[:, 1], c=real_y)
-    cbar = plt.colorbar()
-    cbar.ax.set_yticklabels(GENRE_LIST)
+    if first_plot:
+        cbar = plt.colorbar()
+        cbar.ax.set_yticklabels(GENRE_LIST)
+        first_plot = False
     plt.savefig(os.path.join(CHART_DIR, name), bbox_inches="tight")
 
 
@@ -83,9 +96,20 @@ def train_model(real_x, real_y, name, plot=False):
     computed_x = []
     computed_y = []
 
+    plot_x = []
+    plot_y = []
+    acc_test_x = []
+    acc_test_y = []
+
     for train, test in cv.split(real_x):
         x_train, y_train = extract_sample(real_x, real_y, train)
         x_test, y_test = extract_sample(real_x, real_y, test)
+
+        plot_x = list(itertools.chain(plot_x, x_train))
+        plot_y = list(itertools.chain(plot_y, y_train))
+
+        acc_test_x = list(itertools.chain(acc_test_x, x_test))
+        acc_test_y = list(itertools.chain(acc_test_y, y_test))
 
         intermediate_x = []
 
@@ -144,6 +168,8 @@ def train_model(real_x, real_y, name, plot=False):
                                 label='%s vs rest' % genre_list[label])
 
         joblib.dump(classifiers[cc], 'saved_model/model_ceps_%s.pkl' % str(cc))
+        #plot_decision(plot_x, plot_y, classifiers[cc].predict(plot_x), "clasificatorul_%s" %str(cc))
+        print "acuratetea %s este: " % cc, accuracy_score(acc_test_y, classifiers[cc].predict(acc_test_x))
 
     # all_pr_scores = np.asarray(pr_scores.values()).flatten()
     # summary = (np.mean(scores), np.std(scores), np.mean(all_pr_scores), np.std(all_pr_scores))
@@ -156,9 +182,15 @@ def train_model(real_x, real_y, name, plot=False):
     all_train_y = []
     y_predicted = []
 
+    acc_final_x = []
+    acc_final_y = []
+
     for train, test in cv_gmm.split(computed_x):
         x_train, y_train = extract_sample(computed_x, computed_y, train)
         x_test, y_test = extract_sample(computed_x, computed_y, test)
+
+        acc_final_x = list(itertools.chain(acc_final_x, x_test))
+        acc_final_y = list(itertools.chain(acc_final_y, y_test))
 
         GMM_clf.fit(x_train, y_train)
 
@@ -178,6 +210,7 @@ def train_model(real_x, real_y, name, plot=False):
         gmm_cms.append(cm)
 
     plot_decision(all_train_x, all_train_y, y_predicted, "final_classifier")
+    print "Acuratetea clasificatorului final este: ", accuracy_score(acc_final_y, GMM_clf.predict(acc_final_x))
 
     print "plot EM confusion matrix"
 
