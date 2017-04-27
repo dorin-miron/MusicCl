@@ -26,18 +26,18 @@ from sklearn.decomposition import PCA
 
 genre_list = GENRE_LIST
 
-original_params = {'n_estimators': 100, 'max_leaf_nodes': 16, 'max_depth': None, 'random_state': 2,
-                   'min_samples_split': 5}
+original_params = {'n_estimators': 300, 'max_leaf_nodes': 16, 'max_depth': None, 'random_state': 1,
+                   'min_samples_split': 2}
 
 classifiers = [LogisticRegression(),
-               RandomForestClassifier(n_estimators=200, max_depth=None, min_samples_split=2, random_state=1),
+               RandomForestClassifier(n_estimators=300, max_depth=None, min_samples_split=2, random_state=1),
                GradientBoostingClassifier(**original_params)]
 
 # GMM_clf = mixture.GaussianMixture(n_components=10, covariance_type='full',max_iter=300)
-GMM_clf = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(15,), random_state=1)
+GMM_clf = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(300,), random_state=1)
 
 
-def plot_decision(real_x, real_y, pred_y):
+def plot_decision(real_x, real_y, pred_y, name):
     # TODO see where is commented and modify to display x and real y from test_dataset
 
     x_train_embedded = PCA(n_components=2).fit_transform(real_x)
@@ -57,7 +57,7 @@ def plot_decision(real_x, real_y, pred_y):
     # plt.scatter(X_Train_embedded[:, 0], x_train_embedded[:, 1], c=real_y)
     cbar = plt.colorbar()
     cbar.ax.set_yticklabels(GENRE_LIST)
-    plt.savefig(os.path.join(CHART_DIR, "test"), bbox_inches="tight")
+    plt.savefig(os.path.join(CHART_DIR, name), bbox_inches="tight")
 
 
 def train_model(real_x, real_y, name, plot=False):
@@ -69,8 +69,8 @@ def train_model(real_x, real_y, name, plot=False):
     test_errors = []
 
     scores = []
-    pr_scores = defaultdict(list)
-    precisions, recalls, thresholds = defaultdict(list), defaultdict(list), defaultdict(list)
+    # pr_scores = defaultdict(list)
+    # precisions, recalls, thresholds = defaultdict(list), defaultdict(list), defaultdict(list)
 
     roc_scores = defaultdict(list)
     tprs = defaultdict(list)
@@ -80,35 +80,35 @@ def train_model(real_x, real_y, name, plot=False):
 
     cms = [[] for _ in range(len(classifiers))]
 
-    X_GMM_F = []
-    Y_GMM = []
+    computed_x = []
+    computed_y = []
 
     for train, test in cv.split(real_x):
-        X_train, y_train = extract_sample(real_x, real_y, train)
-        X_test, y_test = extract_sample(real_x, real_y, test)
+        x_train, y_train = extract_sample(real_x, real_y, train)
+        x_test, y_test = extract_sample(real_x, real_y, test)
 
-        X_GMM = []
+        intermediate_x = []
 
         for cc in range(len(classifiers)):
             clf = classifiers[cc]
 
-            clf.fit(X_train, y_train)
+            clf.fit(x_train, y_train)
             clfs[cc].append(clf)
 
-            train_score = clf.score(X_train, y_train)
-            test_score = clf.score(X_test, y_test)
+            train_score = clf.score(x_train, y_train)
+            test_score = clf.score(x_test, y_test)
             scores.append(test_score)
 
             train_errors.append(1 - train_score)
             test_errors.append(1 - test_score)
 
-            y_pred = clf.predict(X_test)
+            y_pred = clf.predict(x_test)
             cm = confusion_matrix(y_test, y_pred)
             cms[cc].append(cm)
 
             for label in labels:
                 y_label_test = np.asarray(y_test == label, dtype=int)
-                proba = clf.predict_proba(X_test)
+                proba = clf.predict_proba(x_test)
                 proba_label = proba[:, label]
 
                 fpr, tpr, roc_thresholds = roc_curve(y_label_test, proba_label)
@@ -116,23 +116,23 @@ def train_model(real_x, real_y, name, plot=False):
                 tprs[label].append(tpr)
                 fprs[label].append(fpr)
 
-            proba = clf.predict_proba(X_test)
-            if len(X_GMM) == 0:
-                X_GMM = copy.copy(proba)
+            proba = clf.predict_proba(x_test)
+            if len(intermediate_x) == 0:
+                intermediate_x = copy.copy(proba)
             else:
-                aux = [r for r in zip(X_GMM, proba)]
-                X_GMM = []
+                aux = [r for r in zip(intermediate_x, proba)]
+                intermediate_x = []
                 for x in aux:
-                    X_GMM.append([])
-                    for y in x:
-                        for z in y:
-                            X_GMM[-1].append(z)
+                    intermediate_x.append([])
+                    for k in x:
+                        for z in k:
+                            intermediate_x[-1].append(z)
 
-        Y_GMM = list(itertools.chain(Y_GMM, y_test))
-        if len(X_GMM_F) == 0:
-            X_GMM_F = X_GMM
+        computed_y = list(itertools.chain(computed_y, y_test))
+        if len(computed_x) == 0:
+            computed_x = copy.copy(intermediate_x)
         else:
-            X_GMM_F = X_GMM_F + X_GMM
+            computed_x = computed_x + intermediate_x
 
     for cc in range(len(classifiers)):
         if plot:
@@ -140,7 +140,8 @@ def train_model(real_x, real_y, name, plot=False):
                 scores_to_sort = roc_scores[label]
                 median = np.argsort(scores_to_sort)[len(scores_to_sort) / 2]
                 desc = "%s_%s %s" % (name, cc, genre_list[label])
-                plot_roc_curves(roc_scores[label][median], desc, tprs[label][median], fprs[label][median],label='%s vs rest' % genre_list[label])
+                plot_roc_curves(roc_scores[label][median], desc, tprs[label][median], fprs[label][median],
+                                label='%s vs rest' % genre_list[label])
 
         joblib.dump(classifiers[cc], 'saved_model/model_ceps_%s.pkl' % str(cc))
 
@@ -155,28 +156,28 @@ def train_model(real_x, real_y, name, plot=False):
     all_train_y = []
     y_predicted = []
 
-    for train, test in cv_gmm.split(X_GMM_F):
-        X_train, y_train = extract_sample(X_GMM_F, Y_GMM, train)
-        X_test, y_test = extract_sample(X_GMM_F, Y_GMM, test)
+    for train, test in cv_gmm.split(computed_x):
+        x_train, y_train = extract_sample(computed_x, computed_y, train)
+        x_test, y_test = extract_sample(computed_x, computed_y, test)
 
-        GMM_clf.fit(X_train, y_train)
+        GMM_clf.fit(x_train, y_train)
 
-        y_pred = GMM_clf.predict(X_test)
+        y_pred = GMM_clf.predict(x_test)
 
         if len(all_train_x) == 0:
-            all_train_x = X_train
+            all_train_x = x_train
             all_train_y = y_train
         else:
-            all_train_x = all_train_x + X_train
+            all_train_x = all_train_x + x_train
             all_train_y = all_train_y + y_train
 
-        for r in GMM_clf.predict(X_train):
+        for r in GMM_clf.predict(x_train):
             y_predicted.append(r)
 
         cm = confusion_matrix(y_test, y_pred)
         gmm_cms.append(cm)
 
-    plot_decision(all_train_x, all_train_y, y_predicted)
+    plot_decision(all_train_x, all_train_y, y_predicted, "final_classifier")
 
     print "plot EM confusion matrix"
 
