@@ -8,7 +8,7 @@ root_dir = DATASET_DIR
 print "START CONVERT DATASET"
 for subdir, dirs, files in os.walk(root_dir):
     for fl in files:
-        print "File: ", fl
+        print "File: ", fl 
         path = subdir+'/'+fl
         if path.endswith("au"):
             song = AudioSegment.from_file(path, "au")

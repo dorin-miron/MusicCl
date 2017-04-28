@@ -15,3 +15,6 @@ exemplu aici: http://stackoverflow.com/questions/37718347/plotting-decision-boun
 
 sau asa: http://scikit-learn.org/stable/auto_examples/datasets/plot_random_dataset.html
 __________________________________________________________________________________________________________
+
+2. cand incepi documentatia: de ce am ales python?
+https://www.linkedin.com/pulse/r-vs-python-matlab-octave-julia-who-winner-siva-prasad-katru

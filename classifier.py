@@ -168,7 +168,7 @@ def train_model(real_x, real_y, name, plot=False):
                                 label='%s vs rest' % genre_list[label])
 
         joblib.dump(classifiers[cc], 'saved_model/model_ceps_%s.pkl' % str(cc))
-        #plot_decision(plot_x, plot_y, classifiers[cc].predict(plot_x), "clasificatorul_%s" %str(cc))
+        plot_decision(plot_x, plot_y, classifiers[cc].predict(plot_x), "clasificatorul_%s" %str(cc))
         print "acuratetea %s este: " % cc, accuracy_score(acc_test_y, classifiers[cc].predict(acc_test_x))
 
     # all_pr_scores = np.asarray(pr_scores.values()).flatten()
@@ -209,7 +209,7 @@ def train_model(real_x, real_y, name, plot=False):
         cm = confusion_matrix(y_test, y_pred)
         gmm_cms.append(cm)
 
-    plot_decision(all_train_x, all_train_y, y_predicted, "final_classifier")
+    # plot_decision(all_train_x, all_train_y, y_predicted, "final_classifier")
     print "Acuratetea clasificatorului final este: ", accuracy_score(acc_final_y, GMM_clf.predict(acc_final_x))
 
     print "plot EM confusion matrix"
