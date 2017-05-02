@@ -76,6 +76,19 @@ acuratetea 3 este:  0.808611111111
 acuratetea 4 este:  0.795
 Acuratetea clasificatorului final este:  0.877916666667
 ________________________________________________________
+varianta finala dar doar 3 genuri:
+
+acuratetea 0 este:  0.876875
+acuratetea 1 este:  0.855625
+acuratetea 2 este:  0.8725
+acuratetea 3 este:  0.965625
+acuratetea 4 este:  0.936875
+acuratetea 5 este:  0.926875
+acuratetea 6 este:  0.86625
+Acuratetea clasificatorului final este:  0.95484375
+plot EM confusion matrix
+
+________________________________________________________
 
 clasificatorul 5 este QuadraticDiscriminantAnalysis
 

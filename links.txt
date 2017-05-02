@@ -1,0 +1,25 @@
+https://www.youtube.com/watch?v=ymQUVMddhq4 -> 4 genuri, rata de succes 20%
+
+##
+https://quod.lib.umich.edu/cgi/p/pod/dod-idx/automatic-genre-classification-as-a-study-of-the-viability.pdf?c=icmc;idno=bbp2372.2004.072
+3 categorii mari, fiecare cu cate 3 subcategorii:
+clasificare corecta a categoriilor mari:  84.8%
+clasificare corecta a categoriilor mici:  57.8%
+
+####
+https://www.researchgate.net/publication/220723648
+3 categorii mari, fiecare cu cate 3 subcategorii:
+clasificare corecta a categoriilor mari: 98%
+clasificare corecta a categoriilor mici: 90%
+
+-> As putea sa ma uit la related work. Sa mentionez ca genurile alese de el sunt foarte asemanatoare
+
+######
+
+https://www.researchgate.net/publication/3333877_Musical_genre_classification_of_audio_signals_IEEE_Trans_Speech_Audio_Process
+clasificare corecta a 10 genuri cu rata de 61%
+
+#######
+
+https://www.researchgate.net/publication/3858611_Content-based_methods_for_the_management_of_digital_music
+clasificare corecta a 6 genuri cu rata de 92%
