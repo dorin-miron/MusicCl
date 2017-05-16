@@ -39,7 +39,6 @@ classifiers = [MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(100
                SVC(kernel='linear', probability=True),
                RandomForestClassifier(n_estimators=100, max_depth=None, random_state=1),
                GradientBoostingClassifier(**original_params),
-               QuadraticDiscriminantAnalysis(),
                KNeighborsClassifier(5)]
 
 # GMM_clf = mixture.GaussianMixture(n_components=10, covariance_type='full',max_iter=300)
