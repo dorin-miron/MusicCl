@@ -20,10 +20,8 @@ from sklearn.model_selection import ShuffleSplit
 from sklearn.linear_model.logistic import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.neural_network import MLPClassifier
-from sklearn.gaussian_process import GaussianProcessClassifier
 from sklearn.svm import SVC
-from sklearn.gaussian_process.kernels import RBF
-from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
+
 
 
 from sklearn.decomposition import PCA
@@ -41,7 +39,6 @@ classifiers = [MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(100
                GradientBoostingClassifier(**original_params),
                KNeighborsClassifier(5)]
 
-# GMM_clf = mixture.GaussianMixture(n_components=10, covariance_type='full',max_iter=300)
 GMM_clf = RandomForestClassifier(n_estimators=300, max_depth=None, random_state=2)
 
 
