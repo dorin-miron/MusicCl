@@ -31,6 +31,9 @@ pip install --upgrade pip
 sudo pip install pydub
 sudo apt-get install python-numpy python-scipy python-matplotlib
 
+# install pandas
+sudo pip install pandas
+
 sudo apt-get install ffmpeg
 
 ################

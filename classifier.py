@@ -22,9 +22,12 @@ from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 
-
+from sklearn.preprocessing import normalize
 
 from sklearn.decomposition import PCA
+
+import pandas
+from pandas.plotting import scatter_matrix
 
 genre_list = GENRE_LIST
 first_plot = True
@@ -34,10 +37,12 @@ original_params = {'n_estimators': 100, 'max_leaf_nodes': 8, 'max_depth': None, 
 
 classifiers = [MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(100,), random_state=1),
                LogisticRegression(),
-               SVC(kernel='linear', probability=True),
+               SVC(kernel='poly', probability=True,),
                RandomForestClassifier(n_estimators=100, max_depth=None, random_state=1),
                GradientBoostingClassifier(**original_params),
                KNeighborsClassifier(5)]
+
+name_classifiers = ["Multi-layer perceptron", "Logistic Regresion", "SVC", "Random Forest", "Gradient Boosting", "K-NN"]
 
 GMM_clf = RandomForestClassifier(n_estimators=300, max_depth=None, random_state=2)
 
@@ -54,7 +59,7 @@ def plot_decision(real_x, real_y, pred_y, name):
     x2d_y_min, x2d_y_max = np.min(x_train_embedded[:, 1]), np.max(x_train_embedded[:, 1])
     xx, yy = np.meshgrid(np.linspace(x2d_x_min, x2d_x_max, resolution), np.linspace(x2d_y_min, x2d_y_max, resolution))
 
-    background_model = KNeighborsClassifier(n_neighbors=1).fit(x_train_embedded, pred_y)
+    background_model = KNeighborsClassifier(n_neighbors=3).fit(x_train_embedded, pred_y)
     voronoi_background = background_model.predict(np.c_[xx.ravel(), yy.ravel()])
     voronoi_background = voronoi_background.reshape((resolution, resolution))
 
@@ -165,7 +170,7 @@ def train_model(real_x, real_y, name, plot=False):
 
         joblib.dump(classifiers[cc], 'saved_model/model_ceps_%s.pkl' % str(cc))
         plot_decision(plot_x, plot_y, classifiers[cc].predict(plot_x), "clasificatorul_%s" %str(cc))
-        print "acuratetea %s este: " % cc, accuracy_score(acc_test_y, classifiers[cc].predict(acc_test_x))
+        print "acuratetea clasificatorului %s este: " % name_classifiers[cc], accuracy_score(acc_test_y, classifiers[cc].predict(acc_test_x))
 
     # all_pr_scores = np.asarray(pr_scores.values()).flatten()
     # summary = (np.mean(scores), np.std(scores), np.mean(all_pr_scores), np.std(all_pr_scores))
@@ -180,6 +185,8 @@ def train_model(real_x, real_y, name, plot=False):
 
     acc_final_x = []
     acc_final_y = []
+
+    normalize(computed_x)
 
     for train, test in cv_gmm.split(computed_x):
         x_train, y_train = extract_sample(computed_x, computed_y, train)
@@ -236,6 +243,16 @@ if __name__ == "__main__":
     X, y = read_ceps(genre_list)
 
     # TODO change plot to True when I want to create roc figures
+    #  Above lines are for create diagrams
+    # ds = pandas.DataFrame(X)
+    # scatter_matrix(ds)
+    # plt.savefig(os.path.join(CHART_DIR, "scatter_plot"), bbox_inches="tight")
+
+    # for i in range (12):
+        # name = "histograme" + str(i)
+        # pandas.DataFrame(X[:, i]).plot.hist()
+        # plt.savefig(os.path.join(CHART_DIR, name), bbox_inches="tight")
+
     train_avg, test_avg = train_model(X, y, "ceps", plot=False)
 
     print " Classification finished \n"
