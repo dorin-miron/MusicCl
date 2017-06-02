@@ -2,16 +2,18 @@ import copy
 from sklearn.externals import joblib
 
 from utils import GENRE_LIST
+from utils import TEST_DIR
 from ceps import create_ceps_test, read_ceps_test
 
 genre_list = GENRE_LIST
+dir_test = TEST_DIR
 
 clf = None
 classifiers = []
 
 
 def tst_model_on_single_file(test_file):
-    for cc in range(3):
+    for cc in range(6):
         print 'saved_model/model_ceps_%s.pkl' % str(cc)
         classifiers.append(joblib.load('saved_model/model_ceps_%s.pkl' % str(cc)))
 
@@ -51,5 +53,5 @@ def tst_model_on_single_file(test_file):
 
 if __name__ == "__main__":
 
-    file_name = "blues.00031.wav"
-    tst_model_on_single_file(file_name)
+    file_name = "classical.00006.wav"
+    tst_model_on_single_file(dir_test+"/"+file_name)
