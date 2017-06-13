@@ -73,5 +73,10 @@ scipy==0.17.0
 six==1.10.0
 unity-lens-photos==1.0
 
+sa modific caractreristici/ atribute -: trasaturi.
+
+deep learning -> invatare de profunzime CNN
+state of the art / related working
+
 
 
