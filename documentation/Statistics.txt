@@ -3,7 +3,7 @@
 2 -> SVM
 3 -> randomForest
 4 -> GradientBoosting
-
+6 -> knn
 final -> RandomForest (300 de iteratii)
 __________________________________________________
 acuratetea 0 este:  0.5055
