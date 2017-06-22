@@ -40,9 +40,16 @@ classifiers = [MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(100
                SVC(kernel='poly', probability=True,),
                RandomForestClassifier(n_estimators=100, max_depth=None, random_state=1),
                GradientBoostingClassifier(**original_params),
-               KNeighborsClassifier(5)]
+               KNeighborsClassifier(5)
+               ]
 
-name_classifiers = ["Multi-layer perceptron", "Logistic Regresion", "SVC", "Random Forest", "Gradient Boosting", "K-NN"]
+name_classifiers = ["Multi-layer perceptron",
+                    "Logistic Regresion",
+                    "SVC",
+                    "Random Forest",
+                    "Gradient Boosting",
+                    "KNN"
+                    ]
 
 GMM_clf = RandomForestClassifier(n_estimators=300, max_depth=None, random_state=2)
 
@@ -141,6 +148,7 @@ def train_model(real_x, real_y, name, plot=False):
                 tprs[label].append(tpr)
                 fprs[label].append(fpr)
 
+            # create feature from test part of dataset for final classifier
             proba = clf.predict_proba(x_test)
             if len(intermediate_x) == 0:
                 intermediate_x = copy.copy(proba)
@@ -164,12 +172,12 @@ def train_model(real_x, real_y, name, plot=False):
             for label in labels:
                 scores_to_sort = roc_scores[label]
                 median = np.argsort(scores_to_sort)[len(scores_to_sort) / 2]
-                desc = "%s_%s %s" % (name, cc, genre_list[label])
+                desc = "%s_%s %s" % (name, name_classifiers[cc], genre_list[label])
                 plot_roc_curves(roc_scores[label][median], desc, tprs[label][median], fprs[label][median],
                                 label='%s vs rest' % genre_list[label])
 
         joblib.dump(classifiers[cc], 'saved_model/model_ceps_%s.pkl' % str(cc))
-        plot_decision(plot_x, plot_y, classifiers[cc].predict(plot_x), "clasificatorul_%s" %str(cc))
+        plot_decision(plot_x, plot_y, classifiers[cc].predict(plot_x), "clasificatorul_%s" %str(name_classifiers[cc]))
         print "acuratetea clasificatorului %s este: " % name_classifiers[cc], accuracy_score(acc_test_y, classifiers[cc].predict(acc_test_x))
 
     # all_pr_scores = np.asarray(pr_scores.values()).flatten()
@@ -211,8 +219,11 @@ def train_model(real_x, real_y, name, plot=False):
 
         cm = confusion_matrix(y_test, y_pred)
         gmm_cms.append(cm)
+    # plot decision with input tvalue probability calculated with these 6 classifiers
+    #plot_decision(all_train_x, all_train_y, y_predicted, "final_classifier")
 
-    # plot_decision(all_train_x, all_train_y, y_predicted, "final_classifier")
+    #plot decision with real input
+    plot_decision(acc_test_x, acc_test_y, GMM_clf.predict(computed_x), "final_classifier_bun")
     print "Acuratetea clasificatorului final este: ", accuracy_score(acc_final_y, GMM_clf.predict(acc_final_x))
 
     print "plot EM confusion matrix"
@@ -233,7 +244,7 @@ def conf_matrix(cms):
         cm_avg = np.mean(cms[cc], axis=0)
         cm_norm = cm_avg / np.sum(cm_avg, axis=0)
         print "\n Plotting confusion matrix ... \n"
-        plot_confusion_matrix(cm_norm, genre_list, "ceps" + str(cc), "CEPS classifier - Confusion matrix")
+        plot_confusion_matrix(cm_norm, genre_list, "ceps" + str(name_classifiers[cc]), "Matrice de confuzie - " + str(name_classifiers[cc]))
 
 if __name__ == "__main__":
     start = timeit.default_timer()
