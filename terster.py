@@ -4,6 +4,7 @@ from sklearn.externals import joblib
 from utils import GENRE_LIST
 from utils import TEST_DIR
 from ceps import create_ceps_test, read_ceps_test
+import sys
 
 genre_list = GENRE_LIST
 dir_test = TEST_DIR
@@ -24,6 +25,7 @@ def tst_model_on_single_file(test_file):
     for cc in range(len(classifiers)):
         clf = classifiers[cc]
         proba = clf.predict_proba(input_x)
+        
         if len(computed_x) == 0:
             computed_x = copy.copy(proba)
         else:
@@ -53,5 +55,6 @@ def tst_model_on_single_file(test_file):
 
 if __name__ == "__main__":
 
-    file_name = "classical.00006.wav"
+    file_name = sys.argv[1]
+    print file_name
     tst_model_on_single_file(dir_test+"/"+file_name)
